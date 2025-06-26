@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Resumes - ATS System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        padding: 40px;
+        width: 100%;
+        max-width: 600px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #2d3748;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header p {
+        color: #718096;
+        font-size: 1.1rem;
+      }
+
+      .upload-area {
+        border: 3px dashed #cbd5e0;
+        border-radius: 15px;
+        padding: 40px 20px;
+        text-align: center;
+        background: rgba(247, 250, 252, 0.5);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .upload-area:hover,
+      .upload-area.drag-over {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 15px;
+      }
+
+      .upload-text {
+        color: #4a5568;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+
+      .upload-subtext {
+        color: #718096;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+      }
+
+      .file-input {
+        display: none;
+      }
+
+      .browse-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .browse-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .file-list {
+        margin-top: 20px;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .file-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+
+      .file-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
+      }
+
+      .file-details {
+        flex: 1;
+      }
+
+      .file-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 2px;
+      }
+
+      .file-size {
+        font-size: 0.85rem;
+        color: #718096;
+      }
+
+      .remove-btn {
+        background: #fed7d7;
+        color: #e53e3e;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+
+      .remove-btn:hover {
+        background: #feb2b2;
+        transform: scale(1.05);
+      }
+
+      .continue-btn {
+        width: 100%;
+        background: linear-gradient(45deg, #48bb78, #38a169);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 30px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .continue-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(72, 187, 120, 0.4);
+      }
+
+      .continue-btn:disabled {
+        background: #cbd5e0;
+        color: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .error-message {
+        background: #fed7d7;
+        color: #e53e3e;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-weight: 600;
+        text-align: center;
+        display: none;
+      }
+
+      .file-count {
+        text-align: center;
+        margin-top: 15px;
+        color: #667eea;
+        font-weight: 600;
+      }
+
+      .progress-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+
+      .progress-step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        position: relative;
+      }
+
+      .progress-step.completed {
+        background: linear-gradient(45deg, #48bb78, #38a169);
+      }
+
+      .progress-step.active {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+      }
+
+      .progress-step.pending {
+        background: #cbd5e0;
+        color: #718096;
+      }
+
+      .progress-line {
+        width: 50px;
+        height: 3px;
+        background: #cbd5e0;
+        border-radius: 2px;
+      }
+
+      .progress-line.completed {
+        background: linear-gradient(45deg, #48bb78, #38a169);
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 30px 20px;
+          margin: 10px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .upload-area {
+          padding: 30px 15px;
+        }
+
+        .file-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .file-info {
+          width: 100%;
+        }
+
+        .remove-btn {
+          align-self: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="progress-indicator">
+        <div class="progress-step completed">1</div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step completed">2</div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step completed">3</div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">4</div>
+        <div class="progress-line pending"></div>
+        <div class="progress-step pending">5</div>
+      </div>
+
+      <div class="header">
+        <h1>📄 Upload Resumes</h1>
+        <p>Upload multiple resumes for ATS analysis</p>
+      </div>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">☁️</div>
+        <div class="upload-text">Drag & Drop your resumes here</div>
+        <div class="upload-subtext">or click to browse files</div>
+        <div class="upload-subtext">
+          Supports PDF and DOCX files (Max 10MB each)
+        </div>
+        <button
+          class="browse-btn"
+          onclick="document.getElementById('fileInput').click()"
+        >
+          Browse Files
+        </button>
+      </div>
+
+      <input
+        type="file"
+        id="fileInput"
+        class="file-input"
+        multiple
+        accept=".pdf,.docx"
+      />
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="file-count" id="fileCount" style="display: none">
+        0 files selected
+      </div>
+
+      <button
+        class="continue-btn"
+        id="continueBtn"
+        disabled
+        onclick="goToNext()"
+      >
+        Continue to Dashboard
+      </button>
+    </div>
+
+    <script>
+      // Array to store uploaded File objects
+      let uploadedFiles = []; // This will now store actual File objects
+
+      const uploadArea = document.getElementById("uploadArea");
+      const fileInput = document.getElementById("fileInput");
+      const fileList = document.getElementById("fileList");
+      const continueBtn = document.getElementById("continueBtn");
+      const errorMessage = document.getElementById("errorMessage");
+      const fileCount = document.getElementById("fileCount");
+
+      // Maximum file size (10MB in bytes)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+      // Allowed file types
+      const ALLOWED_TYPES = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+
+      // Check if user is logged in
+      const user_id = localStorage.getItem('user_id');
+      if (!user_id) {
+          window.location.href = "login.html"; // Redirect if not logged in
+      }
+
+      // Drag and drop events
+      uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("drag-over");
+      });
+
+      uploadArea.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("drag-over");
+      });
+
+      uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("drag-over");
+        const files = Array.from(e.dataTransfer.files);
+        handleFiles(files);
+      });
+
+      // Click to browse
+      uploadArea.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      // File input change
+      fileInput.addEventListener("change", (e) => {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+      });
+
+      function handleFiles(files) {
+        hideError();
+
+        for (let file of files) {
+          if (!validateFile(file)) {
+            continue;
+          }
+
+          // Check if file already exists (by name and size)
+          if (
+            uploadedFiles.some(
+              (f) => f.name === file.name && f.size === file.size
+            )
+          ) {
+            showError(`File "${file.name}" is already added.`);
+            continue;
+          }
+
+          // Add the actual File object to the array
+          uploadedFiles.push(file);
+        }
+
+        updateFileList();
+        updateContinueButton();
+        updateFileCount();
+      }
+
+      function validateFile(file) {
+        // Check file type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          showError(
+            `Invalid file type: ${file.name}. Only PDF and DOCX files are allowed.`
+          );
+          return false;
+        }
+
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+          showError(`File too large: ${file.name}. Maximum size is 10MB.`);
+          return false;
+        }
+
+        return true;
+      }
+
+      function updateFileList() {
+        fileList.innerHTML = "";
+
+        uploadedFiles.forEach((file, index) => {
+          const fileItem = document.createElement("div");
+          fileItem.className = "file-item";
+
+          const fileExtension = file.name.split(".").pop().toUpperCase();
+          const fileSize = formatFileSize(file.size);
+
+          fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">${fileExtension}</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+
+          fileList.appendChild(fileItem);
+        });
+      }
+
+      function removeFile(index) {
+        uploadedFiles.splice(index, 1);
+        updateFileList();
+        updateContinueButton();
+        updateFileCount();
+        hideError();
+      }
+
+      function updateContinueButton() {
+        continueBtn.disabled = uploadedFiles.length === 0;
+      }
+
+      function updateFileCount() {
+        if (uploadedFiles.length > 0) {
+          fileCount.style.display = "block";
+          fileCount.textContent = `${uploadedFiles.length} file${
+            uploadedFiles.length === 1 ? "" : "s"
+          } selected`;
+        } else {
+          fileCount.style.display = "none";
+        }
+      }
+
+      function formatFileSize(size) {
+        if (size < 1024) return size + " B";
+        if (size < 1024 * 1024) return (size / 1024).toFixed(1) + " KB";
+        return (size / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = "block";
+        setTimeout(hideError, 5000);
+      }
+
+      function hideError() {
+        errorMessage.style.display = "none";
+      }
+
+      async function goToNext() {
+        if (uploadedFiles.length === 0) {
+          showError("Please upload at least one resume file");
+          return;
+        }
+
+        // Disable button and show loading state
+        continueBtn.disabled = true;
+        continueBtn.textContent = "Processing...";
+        document.body.style.cursor = 'wait'; // Change cursor to indicate loading
+
+        const formData = new FormData();
+        uploadedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const currentJobId = localStorage.getItem('currentJobId');
+        if (!currentJobId) {
+            showError("Job requirements not found. Please go back to input page.");
+            continueBtn.disabled = false;
+            continueBtn.textContent = "Continue to Dashboard";
+            document.body.style.cursor = 'default';
+            return;
+        }
+
+        try {
+            // Step 1: Upload resumes
+            const uploadResponse = await fetch('http://127.0.0.1:5000/api/upload_resumes', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const uploadData = await uploadResponse.json();
+
+            if (!uploadResponse.ok) {
+                throw new Error(uploadData.message || "Failed to upload resumes.");
+            }
+
+            console.log('Resumes uploaded:', uploadData);
+            if (!uploadData.resume_ids || uploadData.resume_ids.length === 0) {
+                throw new Error("No resume IDs returned from upload.");
+            }
+
+            // Step 2: Trigger screening
+            const screenResponse = await fetch('http://127.0.0.1:5000/api/screen_resumes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    job_id: currentJobId,
+                    resume_ids: uploadData.resume_ids
+                }),
+            });
+
+            const screenData = await screenResponse.json();
+
+            if (!screenResponse.ok) {
+                throw new Error(screenData.message || "Failed to get screening results.");
+            }
+
+            console.log('Screening results:', screenData);
+            if (screenData.results) {
+                // Store results to be displayed on dashboard
+                localStorage.setItem('screeningResults', JSON.stringify(screenData.results));
+                window.location.href = "dashboard.html";
+            } else {
+                throw new Error("No screening results returned.");
+            }
+
+        } catch (error) {
+            console.error('Error during upload or screening:', error);
+            showError("Error: " + error.message);
+        } finally {
+            continueBtn.disabled = false;
+            continueBtn.textContent = "Continue to Dashboard";
+            document.body.style.cursor = 'default';
+        }
+      }
+
+      // Clear any existing files on page load
+      // This ensures a fresh start if the user navigates back
+      document.addEventListener('DOMContentLoaded', () => {
+          uploadedFiles = [];
+          updateFileList();
+          updateContinueButton();
+          updateFileCount();
+      });
+    </script>
+  </body>
+</html>

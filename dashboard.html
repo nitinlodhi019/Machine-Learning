@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Screening Dashboard</title>
+    <style>
+      /* ===== GLOBAL STYLES ===== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+
+      /* ===== HEADER SECTION ===== */
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ===== CONTROLS SECTION ===== */
+      .controls {
+        padding: 30px 40px;
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .sort-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .sort-container label {
+        font-weight: 600;
+        color: #555;
+      }
+
+      .sort-dropdown {
+        padding: 12px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: white;
+        font-size: 1rem;
+        color: #555;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .sort-dropdown:hover {
+        border-color: #667eea;
+      }
+
+      .sort-dropdown:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .results-count {
+        color: #666;
+        font-size: 1rem;
+      }
+
+      /* ===== RESUME CARDS GRID ===== */
+      .resume-grid {
+        padding: 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        background: #f8f9fa;
+      }
+
+      .resume-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        opacity: 0;
+        transform: translateY(30px);
+        animation: slideInUp 0.6s ease forwards;
+      }
+
+      .resume-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        border-color: #667eea;
+      }
+
+      .resume-card.shortlisted {
+        border-color: #ffd700;
+        background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+      }
+
+      @keyframes slideInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+
+      .candidate-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+      }
+
+      .shortlist-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #ccc;
+        transition: all 0.3s ease;
+        padding: 5px;
+        border-radius: 50%;
+      }
+
+      .shortlist-btn:hover {
+        color: #ffd700;
+        transform: scale(1.2);
+      }
+
+      .shortlist-btn.active {
+        color: #ffd700;
+      }
+
+      .match-score {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+      }
+
+      .skills-section {
+        margin-bottom: 20px;
+      }
+
+      .skills-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+        font-weight: 500;
+      }
+
+      .skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .skill-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .department {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        font-style: italic;
+      }
+
+      .view-resume-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .view-resume-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(44, 62, 80, 0.3);
+      }
+
+      /* ===== MODAL STYLES ===== */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+        opacity: 1;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 15px;
+        max-width: 800px;
+        max-height: 90vh;
+        width: 90%;
+        overflow-y: auto;
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
+      }
+
+      .modal-header {
+        padding: 30px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: #999;
+        transition: color 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: #333;
+      }
+
+      .modal-body {
+        padding: 30px;
+        line-height: 1.6;
+        white-space: pre-wrap; /* Preserve whitespace and line breaks */
+        font-family: monospace; /* Use monospace for raw text */
+        font-size: 0.9rem;
+      }
+
+      .resume-preview {
+        font-family: "Times New Roman", serif;
+        color: #333;
+      }
+
+      .resume-section {
+        margin-bottom: 25px;
+      }
+
+      .resume-section h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 5px;
+        margin-bottom: 15px;
+      }
+
+      /* ===== NAVIGATION SECTION ===== */
+      .navigation {
+        padding: 30px 40px;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: center;
+      }
+
+      .feedback-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .feedback-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+      }
+
+      /* ===== RESPONSIVE DESIGN ===== */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .header {
+          padding: 30px 20px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .controls {
+          padding: 20px;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .resume-grid {
+          padding: 20px;
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        .modal-content {
+          width: 95%;
+          margin: 20px;
+        }
+
+        .modal-header,
+        .modal-body {
+          padding: 20px;
+        }
+
+        .navigation {
+          padding: 20px;
+        }
+      }
+
+      /* ===== LOADING ANIMATION ===== */
+      .loading {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e9ecef;
+        border-left: 4px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== MAIN CONTAINER ===== -->
+    <div class="container">
+      <!-- ===== HEADER SECTION ===== -->
+      <header class="header">
+        <h1>Top Matching Resumes</h1>
+        <p>AI-powered candidate screening results</p>
+      </header>
+
+      <!-- ===== CONTROLS SECTION ===== -->
+      <div class="controls">
+        <div class="sort-container">
+          <label for="sortSelect">Sort by:</label>
+          <select id="sortSelect" class="sort-dropdown">
+            <option value="score">Match Score (High → Low)</option>
+            <option value="name">Name (A → Z)</option>
+          </select>
+        </div>
+        <div class="results-count" id="resultsCount">5 candidates found</div>
+      </div>
+
+      <!-- ===== RESUME CARDS GRID ===== -->
+      <div class="resume-grid" id="resumeGrid">
+        <!-- Resume cards will be dynamically inserted here -->
+      </div>
+
+      <!-- ===== NAVIGATION SECTION ===== -->
+      <div class="navigation">
+        <button class="feedback-btn" onclick="goToFeedback()">
+          Submit Feedback
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== MODAL OVERLAY ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Resume Preview</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Resume preview content will be inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ===== APPLICATION STATE =====
+      let currentResumes = []; // This will be populated from backend results
+      let shortlistedIds = new Set();
+
+      // ===== DOM ELEMENTS =====
+      const resumeGrid = document.getElementById("resumeGrid");
+      const sortSelect = document.getElementById("sortSelect");
+      const resultsCount = document.getElementById("resultsCount");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalBody = document.getElementById("modalBody");
+
+      // Check if user is logged in
+      const user_id = localStorage.getItem('user_id');
+      if (!user_id) {
+          window.location.href = "login.html"; // Redirect if not logged in
+      }
+
+      // ===== INITIALIZATION =====
+      document.addEventListener("DOMContentLoaded", function () {
+        loadScreeningResults();
+        loadShortlistedItems();
+        renderResumes();
+        setupEventListeners();
+      });
+
+      // ===== EVENT LISTENERS SETUP =====
+      function setupEventListeners() {
+        // Sort dropdown change
+        sortSelect.addEventListener("change", handleSortChange);
+
+        // Modal close on ESC key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeModal();
+          }
+        });
+
+        // Modal close on overlay click
+        modalOverlay.addEventListener("click", function (e) {
+          if (e.target === modalOverlay) {
+            closeModal();
+          }
+        });
+      }
+
+      // ===== DATA LOADING =====
+      function loadScreeningResults() {
+          const storedResults = localStorage.getItem('screeningResults');
+          if (storedResults) {
+              const parsedResults = JSON.parse(storedResults);
+              currentResumes = parsedResults.map(res => ({
+                  id: res.resume_id,
+                  name: res.filename.split('.')[0], // Extract name from filename
+                  matchScore: res.match_score,
+                  matchedSkills: res.matched_skills,
+                  department: res.department,
+                  shortlisted: false // Initialize as not shortlisted
+              }));
+          } else {
+              currentResumes = [];
+              console.warn("No screening results found in localStorage. Please upload resumes first.");
+              // Optionally redirect to upload page if no results
+              // window.location.href = "upload.html";
+          }
+      }
+
+      // ===== RESUME RENDERING =====
+      function renderResumes() {
+        resumeGrid.innerHTML = "";
+
+        currentResumes.forEach((resume, index) => {
+          const card = createResumeCard(resume, index);
+          resumeGrid.appendChild(card);
+        });
+
+        updateResultsCount();
+        addHoverEffects(); // Apply hover effects after rendering
+      }
+
+      function createResumeCard(resume, index) {
+        const card = document.createElement("div");
+        card.className = `resume-card ${
+          shortlistedIds.has(resume.id) ? "shortlisted" : ""
+        }`;
+        card.style.animationDelay = `${index * 0.1}s`;
+
+        card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="candidate-name">${resume.name}</h3>
+                    <button class="shortlist-btn ${
+                      shortlistedIds.has(resume.id) ? "active" : ""
+                    }"
+                            onclick="toggleShortlist('${resume.id}')"
+                            title="Add to shortlist">
+                        ★
+                    </button>
+                </div>
+
+                <div class="match-score">
+                    ${resume.matchScore}% Match
+                </div>
+
+                <div class="department">
+                    ${resume.department}
+                </div>
+
+                <div class="skills-section">
+                    <div class="skills-label">Matched Skills:</div>
+                    <div class="skills-tags">
+                        ${resume.matchedSkills
+                          .map(
+                            (skill) => `<span class="skill-tag">${skill}</span>`
+                          )
+                          .join("")}
+                    </div>
+                </div>
+
+                <button class="view-resume-btn" onclick="viewResume('${
+                  resume.id
+                }')">
+                    View Resume
+                </button>
+            `;
+
+        return card;
+      }
+
+      // ===== SORTING FUNCTIONALITY =====
+      function handleSortChange() {
+        const sortBy = sortSelect.value;
+
+        if (sortBy === "score") {
+          currentResumes.sort((a, b) => b.matchScore - a.matchScore);
+        } else if (sortBy === "name") {
+          currentResumes.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        renderResumes();
+      }
+
+      // ===== SHORTLIST FUNCTIONALITY =====
+      function toggleShortlist(resumeId) {
+        if (shortlistedIds.has(resumeId)) {
+          shortlistedIds.delete(resumeId);
+        } else {
+          shortlistedIds.add(resumeId);
+        }
+
+        saveShortlistedItems();
+        renderResumes();
+      }
+
+      function loadShortlistedItems() {
+        const storedShortlist = localStorage.getItem('shortlistedResumeIds');
+        if (storedShortlist) {
+            shortlistedIds = new Set(JSON.parse(storedShortlist));
+        }
+      }
+
+      function saveShortlistedItems() {
+        localStorage.setItem('shortlistedResumeIds', JSON.stringify(Array.from(shortlistedIds)));
+      }
+
+      // ===== MODAL FUNCTIONALITY =====
+      async function viewResume(resumeId) {
+        const resume = currentResumes.find((r) => r.id === resumeId);
+        if (!resume) return;
+
+        modalTitle.textContent = `${resume.name} - Resume`;
+        modalBody.innerHTML = '<div class="loading">Loading resume...<div class="spinner"></div></div>'; // Loading indicator
+
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/resume_raw_text/${resumeId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                modalBody.textContent = data.raw_text; // Display raw text directly
+            } else {
+                modalBody.innerHTML = `<div class="error-message">Failed to load resume content: ${data.message || 'Unknown error'}</div>`;
+            }
+        } catch (error) {
+            console.error("Error fetching raw text:", error);
+            modalBody.innerHTML = `<div class="error-message">Network error or backend not reachable.</div>`;
+        }
+
+        modalOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("active");
+        document.body.style.overflow = "auto";
+      }
+
+      // ===== UTILITY FUNCTIONS =====
+      function updateResultsCount() {
+        const shortlistedCount = shortlistedIds.size;
+        const totalCount = currentResumes.length;
+        const shortlistedText =
+          shortlistedCount > 0 ? ` (${shortlistedCount} shortlisted)` : "";
+        resultsCount.textContent = `${totalCount} candidates found${shortlistedText}`;
+      }
+
+      // ===== NAVIGATION =====
+      function goToFeedback() {
+        // Save current state before navigation
+        saveShortlistedItems();
+
+        // Navigate to feedback page (assuming you have one)
+        // window.location.href = "feedback.html";
+        alert("Feedback page is not implemented in this demo.");
+      }
+
+      // ===== ENHANCED ANIMATIONS =====
+      function addHoverEffects() {
+        const cards = document.querySelectorAll(".resume-card");
+        cards.forEach((card) => {
+          card.addEventListener("mouseenter", function () {
+            this.style.transform = "translateY(-5px) scale(1.02)";
+          });
+
+          card.addEventListener("mouseleave", function () {
+            this.style.transform = "translateY(0) scale(1)";
+          });
+        });
+      }
+
+      // ===== PERFORMANCE OPTIMIZATION =====
+      // Debounce function is not directly used in this updated code,
+      // but it's a good utility to keep for performance.
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+    </script>
+  </body>
+</html>
